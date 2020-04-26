@@ -1,0 +1,276 @@
+---
+title: "EX4-SNA"
+author: "Motahhreh Nadimi"
+date: "21/04/2020"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    theme: united
+    highlight: tango    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+## Exercise 1
+** Built an arbitrary two-mode network and retrieve the associated one-mode networks, What do the diagonal and off-diagonal entries mean?**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+library(igraph)
+library(statnet)
+set.seed(123)
+n1 <- 6
+n2 <- 5
+n <- n1 + n2
+# define the probability of connection among nodes of different sets
+p <- .5
+# generate random bipartite graph.
+g <- sample_bipartite(n1, n2, type="Gnp", p = p, directed=FALSE)
+g
+# check the type attribute:
+V(g)$type
+AM <- get.incidence(g)
+colnames(AM) <- c("M1","M2","M3","M4","M5")
+row.names(AM) <- c("F1","F2","F3","F4","F5","F6")
+b <- graph.incidence(AM)
+AM
+# define color and shape mappings.
+col <- c("blue", "yellow")
+shape <- c("circle", "square")
+
+plot(b,
+     vertex.color = col[as.numeric(V(b)$type)+1],
+     vertex.shape = shape[as.numeric(V(b)$type)+1],layout=layout.bipartite,
+     vertex.size=20)
+  is_bipartite(g)
+#alternative plotting , I just remove layout
+plot(b,
+  vertex.color = col[as.numeric(V(b)$type)+1],
+  vertex.shape = shape[as.numeric(V(b)$type)+1],
+  vertex.size=20)
+is_bipartite(g)
+ 
+```
+
+
+
+
+**we project two mode graph to one mode graph**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+
+g.pr <- bipartite.projection(b)
+
+g.pr
+g.side1 <-g.pr$proj1
+g.side2 <- g.pr$proj2
+
+get.adjacency(g.side1,sparse=FALSE,attr="weight")
+get.adjacency(g.side2,sparse=FALSE,attr="weight")
+
+#we plot each of the one mode network:
+shapes <- c("circle","square")
+colors <- c("blue","red")
+op <- par(mfrow=c(1,2))
+plot(g.side1,vertex.color="blue",
+     vertex.shape="circle",main="side1",
+     edge.width=E(g.side1)$weight*2,
+     vertex.size=15,vertex.label.degree=-pi/2,
+     vertex.label.dist=1.2,vertex.label.cex=1)
+plot(g.side2,vertex.color="red",
+     vertex.shape="square",main="side2",
+     edge.width=E(g.side1)$weight*2,
+     vertex.size=15,vertex.label.degree=-pi/2,
+     vertex.label.dist=1.2,vertex.label.cex=1)
+```
+
+**What do the diagonal and off-diagonal entries mean?
+The adjacency matrix of each one-mode projection
+males are undirectly connected through thier shared friend.
+M1 and M4 are indirectly connected through thier 2 common female friend
+but M1 and M2 are indirectly connected via one female friend.**
+
+
+
+
+
+## Exercise 2
+
+**Use the Davis data (Davis.txt file from the first R Lab) and transform it in a hypergraph of an object of class network.**
+
+
+
+**A hypergraph is just a graph G=(V,E) where V is the set of vertices (nodes)
+and E is a subset of the powerset of V. It is a data structure.
+So a common graph is just a hypergraph with rank 2. (i.e each set in E contains exactly two vertices). 
+A directed hypergraph uses pairs (X,Y) as the edges where X and Y are sets.**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+
+h1<-read.table("/home/elham/Desktop/rrrrrrrrrrrrrrrrr/SNA/R LAB March 30th-20200417/Davis.txt",header = T, row.names = 1)
+h1
+class(h1)
+row.names(h1)
+colnames(h1)
+f <- network(h1, matrix = "incidence", hyper = TRUE, directed = FALSE, loops = TRUE, multiple = TRUE)
+f[,]
+#as.matrix(network(t(h1)),matrix.type = "incidence")
+g <- igraph::graph_from_incidence_matrix(h1)
+col <- c("blue", "yellow")
+shape <- c("circle", "square")
+
+plot(g,
+     vertex.color = col[as.numeric(V(g)$type)+1],
+     vertex.shape = shape[as.numeric(V(g)$type)+1],
+     vertex.size=20)
+is_bipartite(g)
+#plot(g)
+```
+
+
+
+
+## Exercise 3
+**By considering the data("faux.magnolia.high") in statnet 
+and using the manipulation functions in the networkScript.R:**
+
+**a. count how many isolates there are**
+
+**b. add all possible edges among nodes with Race="Black" and plot the resulting network**
+
+**c. delete all nodes with Race="natAm" and plot the resulting network**
+
+**d. delete all neighborhood edges of the most connected node**
+
+**e. creat  te the subgraphs of Females and Males**
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+data(faux.magnolia.high)
+v<- faux.magnolia.high
+v
+class(v)
+
+#summary(faux.magnolia.high)
+
+#get.node.attr(faux.magnolia.high,'Race')
+
+par(mar=c(0,0,0,0))
+gplot(faux.magnolia.high,gmode="graph",vertex.cex=0.6,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.02,
+      thresh=0.01,jitter=TRUE, usecurve=TRUE)
+```
+
+
+**a. count how many isolates there are:from this output, we can see the # of isolated out is 524**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+table(component.dist(v)$csize)
+
+```
+
+
+**extra work.we can plot data regarding attribute RACE**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+plot(v, displayisolates = FALSE, vertex.col = "Race", vertex.cex = 0.7)
+
+```
+
+
+
+
+
+
+**b. add all possible edges among nodes with Race="Black" and plot the resulting networksummary(faux.magnolia.high)**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+
+summary(v ~ edges) # Look at the $g(y)$ statistic for this model
+list.vertex.attributes(v) # List all vertex attributes
+gr <- v %v% "Race"
+table(gr)
+
+l <- get.inducedSubgraph(v,
+                           which(v %v% "Race" == "Black"))
+l
+gplot(l,gmode="graph",vertex.cex=0.6,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="blue",edge.lwd=0.02,
+      thresh=0.01,jitter=TRUE, usecurve=TRUE)
+
+```
+
+
+
+**c. delete all nodes with Race="natAm" and plot the resulting networkdelete.vertices() modifies the network in place!**
+
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+list.vertex.attributes(v)
+
+del <- v %v% "Race"
+n2 <- v %s% which(del== "NatAm")
+n2
+as.sociomatrix(n2)
+gplot(n2,displaylabels=TRUE)
+#now we should delete n2
+delete.vertices(v, vid = which(v %v% "Race"=="NatAm"))
+gr <- v %v% "Race"
+table(gr)
+```
+
+**delete all neighborhood edges of the most connected node**
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+
+fmh <- faux.magnolia.high
+fmh
+degreedist(faux.magnolia.high)
+
+Degree <- degree(fmh)     #Computing the  of each node
+table(Degree)
+#Degree
+which(Degree == 16)
+
+#or 
+fmh.degreedist <- table(degree(fmh))
+fmh.degreedist
+#765
+#991
+fmh2 = delete.edges (fmh, get.edgeIDs(fmh,756, neighborhood = "in"))
+fmh2
+fmh3 = delete.edges (fmh2, get.edgeIDs(fmh2,991, neighborhood = "in"))
+fmh3
+```
+
+**create the subgraphs of Females and Males**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+fmh <- faux.magnolia.high
+fmh
+
+#compare degree distributions by sex:
+summary(fmh ~ degree(0:8, "Sex"))
+list.vertex.attributes(fmh)
+#t <- fmh %v% "Sex"
+#Subgraoh of female
+n1F <- get.inducedSubgraph(fmh, which(fmh %v% "Sex" == "M" ))
+n1F
+#subgraph of male.
+n2F <- get.inducedSubgraph(fmh, which(fmh %v% "Sex" == "F" ))
+n2F
+```
+
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+**THANK YOU**
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+

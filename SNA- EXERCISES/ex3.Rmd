@@ -1,0 +1,354 @@
+---
+title: "EX3-SNA"
+author: "Motahhreh Nadimi"
+date: "4/3/2020"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    theme: united
+    highlight: tango    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+## Exercise 1.1
+**Star Network**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+library(statnet)
+g <- network.initialize(15) 
+g
+g[1,] <- 1 #Add an edge from 1 to ALL
+par(mar=c(0,0,0,0))
+gplot(g,gmode="graph",vertex.cex=1,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.02,
+       thresh=0.01,jitter=TRUE, usecurve=FALSE)
+```
+
+
+
+
+**Complete Network**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+g <- network.initialize(10) #Create an empty graph
+g[,] <- 1 
+par(mar=c(0,0,0,0))
+gplot(g,gmode="graph",vertex.cex=1,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.02,
+       thresh=0.01,jitter=TRUE, usecurve=FALSE)
+```
+
+**Circle Network**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+n<-50  #fill the N , N is number of nodes 
+g <- network.initialize(n) #Create an empty graph
+g
+mat<-as.sociomatrix(g)
+#mat
+mat[row(mat) == col(mat)-1] <-mat[n,1] <- 1 # change entries 
+#mat
+g[,]<-mat # using replacement operators
+#summary(g)
+#g[1,2] <- g[2,3] <- g[3,4] <- g[4,5] <-g[5,1] <- 1 
+par(mar=c(0,0,0,0))
+gplot(g,gmode="graph",vertex.cex=0.6,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.02,
+      thresh=0.01,jitter=TRUE, usecurve=FALSE,mode='circle')
+```
+
+
+
+
+**Line network**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+n<-30  #fill the N , N is number of nodes 
+g <- network.initialize(n) #Create an empty graph
+g
+mat<-as.sociomatrix(g)
+#mat
+mat[row(mat) == col(mat)-1] <- 1 # change entries 
+#mat
+g[,]<-mat # using replacement operators
+#summary(g)
+#g[1,2] <- g[2,3] <- g[3,4] <- g[4,5] <-g[5,1] <- 1 
+par(mar=c(0,0,0,0))
+gplot(g,gmode="graph",vertex.cex=1,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.02,
+       thresh=0.01,jitter=TRUE, usecurve=FALSE,mode='kamadakawai')
+```
+
+
+
+
+
+
+## Exercise 1.2
+
+**a) write a R function for each type of graph allowing the user 
+to generate graphs with an arbitrary number of nodes.
+b) Running the above R functions to show the adjacency matrix of 
+each type of graph having not less than 100 nodes.
+NOTE: Graphs must be stored as R objects of class “network”**
+
+**Complete Graph** 
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+n<- 100 # n is # of nodes
+randomG <- rgraph(n, m=1, tprob=1, mode="digraph") # Create a random graph with n=7 nodes and tie prob = 0.5
+generate <- function(randomG) {
+  output <-as.network(randomG)
+  add.edges(output,row(randomG)[randomG>0],col(randomG)[randomG>0])
+  par(mar=c(0,0,0,0))
+  gplot(output,gmode="graph",vertex.cex=1,
+        vertex.col=rgb(0,0,139,alpha=80,
+                       maxColorValue=255),
+        edge.col="grey80",edge.lwd=0.02,
+         thresh=0.01,jitter=TRUE, usecurve=FALSE,mode = 'circle')
+  return(output)
+}
+generate(randomG)
+d<-as.sociomatrix(randomG) #showing the adjecncy matrix 
+d[1:10,1:10]
+output <-as.network(randomG)
+```
+
+
+
+
+
+
+**star graph**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+n<-300 # fill the n
+randomG <- rgraph(n, m=1, tprob=0, mode="graph") # Create a random graph with n=7 nodes and tie prob = 0.5
+randomG[,1] <-randomG[1,] <- 1
+generate <- function(randomG) {
+  output <-as.network(randomG)
+  add.edges(output,row(randomG)[randomG>0],col(randomG)[randomG>0])
+  par(mar=c(0,0,0,0))
+  gplot(output,gmode="graph",vertex.cex=1,
+        vertex.col=rgb(0,0,139,alpha=80,
+                       maxColorValue=255),
+        edge.col="grey80",edge.lwd=0.02,
+         thresh=0.01,jitter=TRUE, usecurve=FALSE)
+  return(output)
+}
+generate(randomG)
+d<-as.sociomatrix(randomG) #showing the adjecncy matrix 
+d[1:10,1:10]
+```
+
+
+
+
+
+
+**Circle graph or ring graph**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+n<- 100
+m <- rgraph(n, m=1, tprob=0, mode="graph")
+m[row(m) == col(m)-1] <-m[n,1] <- 1 # change entries 
+m[1:5,1:5]
+generate <- function(m) {
+  output <-as.network(m)
+  add.edges(output,row(m)[m>0],col(m)[m>0])
+  par(mar=c(0,0,0,0))
+  gplot(output,gmode="graph",vertex.cex=0.6,
+        vertex.col=rgb(0,0,139,alpha=80,
+                       maxColorValue=255),
+        edge.col="grey80",edge.lwd=0.02,
+         thresh=0.01,jitter=TRUE, usecurve=FALSE, mode = 'circle')
+  return(output)
+}
+generate(m)
+d<-as.sociomatrix(randomG) #showing the adjecncy matrix 
+d[1:10,1:10]
+```
+
+
+
+
+
+
+**line graph**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+#.................................................
+n<- 100
+m <- rgraph(n, m=1, tprob=0, mode="graph")
+m[row(m) == col(m)-1] <- 1 # change entries 
+m[1:5,1:5]
+
+generate <- function(m) {
+  output <-as.network(m)
+  add.edges(output,row(m)[m>0],col(m)[m>0])
+  gplot(output,gmode="graph",vertex.cex=1,
+        vertex.col=rgb(0,0,139,alpha=80,
+                       maxColorValue=255),
+        edge.col="grey80",edge.lwd=0.02,
+       thresh=0.01,jitter=TRUE, usecurve=FALSE,mode='kamadakawai')
+  return(output)
+}
+generate(m)
+d<-as.sociomatrix(randomG) #showing the adjecncy matrix 
+d[1:10,1:10]
+```
+
+
+
+
+
+## Exercise 2.1
+
+
+
+
+**Generate a directed cyclic circle graph of the same size of
+the circle graph created in exercise 1.
+(again this should be stored in an object of network class)**
+
+
+
+
+**try with 10 nodes**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+n<-10
+m <- rgraph(n, m=1, tprob=0, mode="digraph")
+m[1:5,1:5]
+m[row(m) == col(m)-1] <-m[n,1] <- 1 # change entries 
+m[5,2]<-m[2,4]<-m[4,5] <- 1 # change entries 
+m[9,4]<-m[4,7]<-m[7,9] <- 1 # change entries 
+
+m
+g <- network(m, directed=TRUE,loops=TRUE,matrix.type="adjacency")
+summary(g)
+gplot(g,gmode="digraph",vertex.cex=1,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.02,
+     thresh=0.01,jitter=TRUE, usecurve=FALSE,mode='circle')
+```
+
+
+
+
+
+**code with 100 nodes**
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+n<-100
+m <- rgraph(n, m=1, tprob=0, mode="digraph")
+m[row(m) == col(m)-1] <-m[n,1] <- 1 # change entries 
+m[99,2]<-m[2,50]<-m[50,99] <- 1 # change entries 
+m[9,24]<-m[24,79]<-m[79,9] <- 1 # change entries 
+g <- network(m, directed=TRUE,loops=TRUE,matrix.type="adjacency")
+#summary(g)
+
+par(mar=c(0,0,0,0))
+
+gplot(g,gmode="digraph",vertex.cex=0.5,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.02,
+       thresh=0.01,jitter=TRUE, usecurve=FALSE,mode='circle')
+```
+
+
+
+
+
+## Exercise 3.1
+
+**Running the following lines setting  num_nodes not less than 100
+my_adjacency <- matrix(round(runif(num_nodes*num_nodes)), nrow = num_nodes, ncol = num_nodes)
+edge_weights <- round(runif(num_edges, min = 1, max = 5))
+
+a) Create an undirected graph as an object of class network having 
+the edge_weights as edge attributes.
+
+b) By using only the functions reported in the Basic summaries and
+elementary operations section of the R script of the 30th March R lab 
+(approx. from line 72 of the R script) computing the network density
+
+c) What is the value of the network density if we consider the edge weights?**
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+
+my_adjacency <- matrix(round(runif(100*100)), nrow = 100, ncol = 100)
+#g<-network.initialize(100) #Initialize the network
+#g[,]<-my_adjacency # using  replacement operators (not a good solution)
+g<-network(my_adjacency,matrix.type="adjacency")
+g[1:5,1:5]
+
+par(mar=c(0,0,0,0))
+gplot(g,gmode="graph",vertex.cex=0.6,
+      vertex.col=rgb(0,0,139,alpha=80,
+                     maxColorValue=255),
+      edge.col="grey80",edge.lwd=0.02,
+    thresh=0.01,jitter=TRUE, usecurve=TRUE,mode='circle')
+#edge_weights <- round(runif(num, min = 1, max = 5))
+list.edge.attributes(g)
+num<-network.edgecount(g, na.omit = TRUE)
+num
+#Assign some attributes
+# In statnet, the actual values of
+#the valued ties are stored in an edge attribute
+set.edge.attribute(g,"rndval",
+                   runif(num, min = 1, max = 5))
+#summary(g %e% "rndval")
+f<-as.sociomatrix(g)
+f[1:10,1:10]
+list.edge.attributes(g)
+c<-round(get.edge.attribute(g, "rndval"))
+c[1:10]
+network.dyadcount(g) # How many dyads in nrelations?
+num # number of edge
+density<- 4996/(100*99)
+density
+#or
+gden(g,ignore.eval=TRUE)
+
+```
+
+
+
+**The function edge_density of irgraph does not consider weights.
+If you call it on a weighted graph, it treats the graph as
+unweighted and returns the density:$nb_edges / V*(V-1) for$
+directed graphs, and $nb_edges / V*(V-1) / 2 for$ undirected grapsh**
+
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+
+**Thank You**
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+
+
+```{r echo=TRUE,  message=FALSE, warning=FALSE}
+```
+
